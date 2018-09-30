@@ -3,6 +3,8 @@
 // compile with "gcc -Wall resource.c -pthread"
 // run with "./a.out" or "valgrind --tool=helgrind ./a.out"
 
+//Project done by Wesley and Clay
+
 
 #include <pthread.h>
 #include <unistd.h>
@@ -305,4 +307,3 @@ int main(int argc, char **argv){
 
     return 0;
 }
-
