@@ -40,7 +40,12 @@ typedef struct resource_type_tag{
 
 	// need to add them here
 
+  //pthread_mutex_t variables
+  //pthread_cond_t variables
+
     // methods other than init (constructor) and reclaim (destructor)
+
+    //Goals: we have to extend allocate, release, and print
 
     int (*allocate)( struct resource_type_tag *self, int tid );
     void (*release)( struct resource_type_tag *self, int tid, int rid );
