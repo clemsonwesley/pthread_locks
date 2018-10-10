@@ -201,11 +201,15 @@ int resource_allocate( struct resource_type_tag *self, int tid ){
 
     return rid;
 
+    pthread_mutex_unlock(&self->lock);
+    pthread_cond_signal(&self->con_var);
+
 }
 
 void resource_release( struct resource_type_tag *self, int tid, int rid ){
 
-
+    pthread_cond_wait(&self->con_var, &self->lock);
+    pthread_mutex_lock(&self->lock);
     if( resource_check( self ) )          // signature check
         resource_error( 9 );
     if( rid >= self->total_count)         // bounds check of argument
@@ -216,14 +220,19 @@ void resource_release( struct resource_type_tag *self, int tid, int rid ){
     self->status[rid] = 0;                // mark this entry as available
     self->owner[rid] = -1;                // reset ownership
     self->available_count++;              // incr count of available resources
+
     pthread_mutex_unlock(&self->lock);
-    pthread_cond_wait(&self->con_var,&self->lock);
+    pthread_cond_signal(&self->con_var);
 }
 
 void resource_print( struct resource_type_tag *self ){
 
-  //pthread_cond_wait(&self->con_var, &self->lock);
-  //pthread_mutex_lock(&self->lock);
+  int rc = pthread_mutex_lock(&self->lock);
+
+  if(rc != 0){
+    pthread_cond_wait(&self->con_var,&self->lock);
+    pthread_mutex_lock(&self->lock);
+  }
     int i;
 
     if( resource_check( self ) )          // signature check
@@ -235,8 +244,9 @@ void resource_print( struct resource_type_tag *self ){
     }
     printf("-------------------------------\n");
 
-    //pthread_mutex_unlock(&self->lock);
-    //pthread_cond_signal(&self->con_var);
+
+    pthread_mutex_unlock(&self->lock);
+    pthread_cond_signal(&self->con_var);
 
 }
 
