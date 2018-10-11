@@ -174,7 +174,7 @@ void resource_reclaim( resource_t *r ){
 int resource_allocate( struct resource_type_tag *self, int tid ){
 
 
-    int i = pthread_mutex_lock(&self->lock);
+    pthread_mutex_lock(&self->lock);
 
 
     int rid;
