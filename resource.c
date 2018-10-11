@@ -176,9 +176,6 @@ int resource_allocate( struct resource_type_tag *self, int tid ){
 
     int i = pthread_mutex_lock(&self->lock);
 
-    if(i != 0){
-      pthread_cond_wait(&self->con_var,&self->lock);
-    }
 
     int rid;
 
@@ -186,6 +183,9 @@ int resource_allocate( struct resource_type_tag *self, int tid ){
         resource_error( 7 );
 
     // assertion before allocating: self->available_count != 0
+    while(self->available_count == 0)
+        pthread_cond_wait(&self->con_var,&self->lock);
+
 
     rid = 0;                              // initialize search index
     self->status[self->total_count] = 0;  // extra entry is always available
@@ -198,12 +198,15 @@ int resource_allocate( struct resource_type_tag *self, int tid ){
     self->owner[rid] = tid;               // record which thread has it
     self->available_count--;              // decr count of available resources
 
+    pthread_mutex_unlock(&self->lock);
     return rid;
 
 }
 
 void resource_release( struct resource_type_tag *self, int tid, int rid ){
 
+
+    pthread_mutex_lock(&self->lock);
 
     if( resource_check( self ) )          // signature check
         resource_error( 9 );
@@ -217,8 +220,9 @@ void resource_release( struct resource_type_tag *self, int tid, int rid ){
     self->available_count++;              // incr count of available resources
 
 
-    pthread_mutex_unlock(&self->lock);
     pthread_cond_signal(&self->con_var);
+    pthread_mutex_unlock(&self->lock);
+
 }
 
 void resource_print( struct resource_type_tag *self ){
@@ -239,8 +243,9 @@ void resource_print( struct resource_type_tag *self ){
     }
     printf("-------------------------------\n");
 
-    pthread_mutex_unlock(&self->lock);
     pthread_cond_signal(&self->con_var);
+    pthread_mutex_unlock(&self->lock);
+
 
 }
 
