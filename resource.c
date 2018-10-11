@@ -227,11 +227,9 @@ void resource_release( struct resource_type_tag *self, int tid, int rid ){
 
 void resource_print( struct resource_type_tag *self ){
 
-  int rc = pthread_mutex_lock(&self->lock);
+    pthread_mutex_lock(&self->lock);
 
-  if(rc != 0){
-    pthread_cond_wait(&self->con_var,&self->lock);
-  }
+
     int i;
 
     if( resource_check( self ) )          // signature check
@@ -243,7 +241,7 @@ void resource_print( struct resource_type_tag *self ){
     }
     printf("-------------------------------\n");
 
-    pthread_cond_signal(&self->con_var);
+    //pthread_cond_broadcast(&self->con_var);
     pthread_mutex_unlock(&self->lock);
 
 
